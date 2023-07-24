@@ -1,0 +1,76 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+#@ load("@ytt:json", "json")
+---
+apiVersion: learningcenter.tanzu.vmware.com/v1beta1
+kind: Workshop
+metadata:
+  name: modern-app-arch-spring-cloud-workshop
+spec:
+  title: Modern App Architectures with Spring Cloud
+  description: A workshop on how to mitigate the challenges of a typical microservices application with the Spring Framework ecosystem
+  vendor: tanzu.vmware.com
+  difficulty: beginner
+  duration: 60m
+  url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop
+  content:
+    image: #@ "{}".format(data.values.workshop_container_image)
+    files: #@ "github.com/{}/modern-app-arch-spring-cloud-workshop?ref={}".format(data.values.workshop_git.username,data.values.workshop_git.branch)
+  session:
+    namespaces:
+      budget: custom
+      role: view
+    applications:
+      terminal:
+        enabled: true
+        layout: split
+      console:
+        enabled: true
+      editor:
+        enabled: true
+    env: 
+    - name: TAP_INGRESS
+      value: #@ data.values.tap.ingress_domain
+    - name: GITEA_BASE_URL
+      value: #@ data.values.gitea.base_url
+    - name: GITEA_USERNAME
+      value: #@ data.values.gitea.basic_auth_username
+    - name: GITEA_PASSWORD
+      value: #@ data.values.gitea.basic_auth_password
+    ingresses:
+    - name: twelve-factors
+      protocol: https
+      host: 12factor.net 
+      port: 443
+    objects:
+    # Permissions for workshop session
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: $(session_namespace)-session
+        namespace: $(session_namespace)
+      rules:
+      - apiGroups: [""]
+        resources: [serviceaccounts]
+        verbs: [patch]
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: $(session_namespace)-session-rb
+        namespace: $(session_namespace)
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: $(session_namespace)-session
+      subjects:
+        - kind: ServiceAccount
+          namespace: $(workshop_namespace)
+          name: $(service_account)
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: registry-credentials
+      type: kubernetes.io/dockerconfigjson
+      data:
+        #@ docker_creds = {"username": data.values.container_registry.username, "password": data.values.container_registry.password}
+        .dockerconfigjson: #@ base64.encode(json.encode({"auths": {data.values.container_registry.hostname: docker_creds}}))

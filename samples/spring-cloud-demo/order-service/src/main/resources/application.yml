@@ -1,0 +1,15 @@
+spring:
+  application.name: order-service # for config server
+  jpa.hibernate.ddl-auto: update
+  config.import: "optional:configserver:"
+ 
+logging.level.org.springframework.cache: TRACE
+management:
+  tracing.sampling.probability: 1.0
+  endpoint.restart.enabled: true
+  endpoints.web.exposure.include: "*"
+
+order:
+  exchange-name: order-delivered-exchange
+  shipping-exchange-name: order-shipping-exchange
+  products-api-url:

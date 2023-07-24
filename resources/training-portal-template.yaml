@@ -1,0 +1,27 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: learningcenter.tanzu.vmware.com/v1beta1
+kind: TrainingPortal
+metadata:
+  name: developer-workshops
+  annotations:
+    kapp.k14s.io/update-strategy: always-replace
+spec:
+  portal:
+    title: Workshops for developers
+    password: #@ data.values.training_portal_password
+    registration:
+      type: anonymous
+    ingress:
+        hostname: developer-workshops
+    updates:
+      workshop: true
+    sessions:
+      maximum: 40
+    reserved: 0
+  workshops:
+    - name: modern-app-arch-spring-cloud-workshop
+      capacity: 40
+      reserved: 1
+      expires: 3h
+      orphaned: 1h

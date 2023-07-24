@@ -1,0 +1,25 @@
+modules:
+    workshop-overview:
+        name: Workshop Overview
+        exit_sign: Start
+    exercises/12-factors:
+        name: The Twelve Factors
+        exit_sign: Configuration
+    exercises/externalized-configuration:
+        name: "Factor 3: Config"
+        exit_sign: Next Challenge
+    exercises/caching-and-circuit-breaking:
+        name: "Factors 4 & 6: Backing Services and Processes"
+        exit_sign: More Factors
+    exercises/more-factors:
+        name: A Closer Look at the Other Factors
+        exit_sign: Maximize Robustness
+    exercises/graalvm:
+        name: "Factors 8 & 9: Concurrency and Disposability"
+        exit_sign: Three More Factors
+    exercises/beyond-12-factors:
+        name: Beyond the Twelve-Factor App
+        exit_sign: Summary
+    workshop-summary:
+        name: Workshop Summary
+        exit_sign: End Workshop
