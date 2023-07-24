@@ -1,4 +1,5 @@
 In cloud-native applications, configuration shouldn't be bundled with code!
+
 In the cloud, you have multiple applications, environments, and service instances — so configuration has to be flexible.
 
 [Spring Cloud Config](https://docs.spring.io/spring-cloud-config/docs/current/reference/html/) is designed to ease this burden by providing server-side and client-side support for externalized configuration in a distributed system. 

@@ -2,6 +2,7 @@
 ---
 container_registry:
   hostname: harbor.example.com
+  project: workshop-examples
   username: 
   password:
 training_portal_password: 
