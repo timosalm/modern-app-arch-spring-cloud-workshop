@@ -6,10 +6,6 @@ In his book Beyond the **Twelfe-Factor App**, Kevin Hoffman presented a new set 
 
 On of those is **Telemetry**.
 
-##### Metrics
-
-**TODO**
-
 ##### Distributed Tracing
 With Distributed Tracing you can track user requests end-to-end across microservices architectures. 
 **Spring Boot Actuator provides dependency management and auto-configuration for [Micrometer Tracing](https://micrometer.io/docs/tracing)**, a facade for popular tracer libraries.
@@ -20,8 +16,7 @@ Spring Boot ships auto-configuration for the following tracers:
 
 Wavefront is now known as **Aria Operations for Applications**, our full-stack observability solution from infrastructure to applications.
 
-For this workshop we use Zipkin as our trace backend to collect and visualize the traces.
-
+For this workshop we use Zipkin as our trace backend to collect and visualize the traces, which is already running in the cluster.
 
 In addition to the `org.springframework.boot:spring-boot-starter-actuator` dependency, we have to add a library that bridges the Micrometer Observation API to either OpenTelemetry or Brave and one that reports traces to the selected solution.
 
@@ -29,11 +24,11 @@ For our example, let's use **OpenTelemetry with Zikin**.
 
 ```editor:insert-lines-before-line
 file: ~/product-service/pom.xml
-line: 33
+line: 37
 text: |2
           <dependency>
             <groupId>io.micrometer</groupId>
-          <artifactId>micrometer-tracing-bridge-otel</artifactId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
           </dependency>
           <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -45,71 +40,29 @@ To automatically propagate traces over the network, use the auto-configured `Res
 
 By default, Spring Boot samples only 10% of requests to prevent overwhelming the trace backend. Let's set it to 100% for our demo so that every request is sent to the trace backend.
 ```editor:append-lines-to-file
-file: ~/product-service/src/main/resources/application.yml
+file: ~/product-service/src/main/resources/application.yaml
 text: |
-  management.tracing.sampling.probability: 1.0
+  management:
+    tracing.sampling.probability: 1.0
 ```
 
 To configure reporting to Zipkin we can use the `management.zipkin.tracing.*` configuration properties.
-In our case, we would like to **set the required configuration automatically via a ServiceBinding**. Unfortunately, the [spring-cloud-bindings](https://github.com/spring-cloud/spring-cloud-bindings) library, which will be automatically added by the Spring Boot Buildpack, doesn't support it yet. 
-But it's possible to add additional bindings by registering additional implementations of the `BindingsPropertiesProcessor`.
-```editor:append-lines-to-file
-file: ~/product-service/src/main/java/com/example/productservice/ZipkinBindingsPropertiesProcessor.java
-text: |
-  package com.example.productservice;
-
-  import org.springframework.cloud.bindings.Bindings;
-  import org.springframework.cloud.bindings.boot.BindingsPropertiesProcessor;
-  import org.springframework.core.env.Environment;
-
-  import java.util.List;
-  import java.util.Map;
-  public class ZipkinBindingsPropertiesProcessor implements BindingsPropertiesProcessor {
-    public static final String TYPE = "zipkin";
-
-    @Override
-    public void process(Environment environment, Bindings bindings, Map<String, Object> properties) {
-        bindings.filterBindings(TYPE).forEach(binding -> {
-            properties.putIfAbsent("management.zipkin.tracing.endpoint", binding.getSecret().get("url") + ":9411/api/v2/spans");
-        });
-    }
-  } 
-```
-```editor:insert-lines-before-line
-file: ~/product-service/pom.xml
-line: 33
-text: |2
-          <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-bindings</artifactId>
-            <version>1.13.0</version>
-            <scope>provided</scope>
-          </dependency>
-```
-You must also add an entry in `META_INF/spring.factories` so that the custom processor can be discovered.
-```editor:append-lines-to-file
-file: ~/product-service/src/main/resources/META-INF/spring.factories
-text: |
-  org.springframework.cloud.bindings.boot.BindingsPropertiesProcessor=\
-  com.example.productservice.ZipkinBindingsPropertiesProcessor
-```
-
-Last but not least, the service binding has to be configured in the Workload and the changes pushed to Git and applied to the environment.
 ```editor:insert-value-into-yaml
-file: ~/product-service/config/workload.yaml
-path: spec.serviceClaims
+file: ~/product-service/src/main/resources/application.yaml
+path: management
 value:
-  - name: tracing
-    ref:
-      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-      kind: ResourceClaim
-      name: zipkin-1
-``` 
-As soon as our outdated application and service binding is applied ...
-```dashboard:open-url
-url: https://tap-gui.{{ ENV_TAP_INGRESS }}/supply-chain/host/{{ session_namespace }}/product-service
+  zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
 ```
-... we can send a request to the order service, and have a look at the ZipKin UI to view the traces.
+
+
+Let's commit the updated source code and wait until the deployment is updated.
+```terminal:execute
+command: |
+  cd product-service && git add . && git commit -m "Add external configuration support" && git push
+  cd ..
+clear: true
+```
+Then we can send a request to the order service, and have a look at the ZipKin UI to view the traces.
 ```terminal:execute
 command: |
   curl -X POST -H "Content-Type: application/json" -d '{"productId":"1", "shippingAddress": "Stuttgart"}' https://order-service-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}/api/v1/orders

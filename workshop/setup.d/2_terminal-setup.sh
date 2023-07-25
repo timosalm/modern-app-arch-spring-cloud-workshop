@@ -15,5 +15,9 @@ for serviceName in product-service order-service shipping-service; do
     cd $serviceName && git init -b $SESSION_NAMESPACE && git remote add origin $GITEA_BASE_URL/${serviceName}.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
     cd ~
 done
-cd ~/samples/externalized-configuration && git init -b $SESSION_NAMESPACE && git remote add origin $GITEA_BASE_URL/externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
-
+cd ~/samples/externalized-configuration
+for serviceName in product-service order-service shipping-service; do
+    sed -i 's/SESSION_NAMESPACE/'"$SESSION_NAMESPACE"'/g' ${serviceName}.yaml
+done
+git init -b $SESSION_NAMESPACE && git remote add origin $GITEA_BASE_URL/externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
+cd ~
