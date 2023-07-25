@@ -122,29 +122,57 @@ text: |
 Based on the application name, we can now add a properties file with the Route configuration to the cloned Git repository with the externalized configuration.
 ```editor:append-lines-to-file
 file: ~/samples/externalized-configuration/gateway.yaml
-text: |
+text: |2
   management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
   spring.cloud.gateway:
-  routes:
-  - id: product-service
-    uri: http://product-service.{{ session_namespace }}
-    predicates:
-    - Path=/services/product-service/**
-    filters:
-    - StripPrefix=2
-  - id: order-service
-    uri: http://order-service.{{ session_namespace }}
-    predicates:
-    - Path=/services/order-service/**
-    filters:
-    - StripPrefix=2
+    routes:
+    - id: product-service
+      uri: http://product-service.{{ session_namespace }}
+      predicates:
+      - Path=/services/product-service/**
+      filters:
+      - StripPrefix=2
+    - id: order-service
+      uri: http://order-service.{{ session_namespace }}
+      predicates:
+      - Path=/services/order-service/**
+      filters:
+      - StripPrefix=2
 ```
-To apply the changes, let's commit the updated externalized configuration and also the source code of the gateway.
+To apply the changes, let's commit the updated externalized configuration.
 ```terminal:execute
 command: |
   cd samples/externalized-configuration && git add . && git commit -m "Add external configuration for gateway" && git push
   cd ~
 clear: true
+```
+Before also committing the source code of the gateway, let's configure the http security.
+```editor:append-lines-to-file
+file: ~/gateway/src/main/java/com/example/gateway/WebSecurityConfiguration.java
+description: 
+text: |2
+  package com.example.gateway;
+
+  import org.springframework.context.annotation.Bean;
+  import org.springframework.context.annotation.Configuration;
+  import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+  import org.springframework.security.config.web.server.ServerHttpSecurity;
+  import org.springframework.security.web.server.SecurityWebFilterChain;
+
+
+  @EnableWebFluxSecurity
+  @Configuration
+  class WebSecurityConfiguration {
+      @Bean
+      public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        return http
+                .csrf().disable()
+                .authorizeExchange(authorize -> authorize
+                        .pathMatchers("/**").permitAll()
+                )
+                .build();
+      }
+  }
 ```
 ```terminal:execute
 command: |
