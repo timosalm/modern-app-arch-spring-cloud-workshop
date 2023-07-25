@@ -25,7 +25,7 @@ clear: true
 ```
 
 **Disposability is the ninth of the original 12 factors**.
-A cloud-native **application’s processes** are disposable, which means they **can be started or stopped rapidly**. An application cannot scale, deploy, release, or recover rapidly if it cannot start rapidly and shut down gracefully. 
+A cloud-native **application's processes** are disposable, which means they **can be started or stopped rapidly**. An application cannot scale, deploy, release, or recover rapidly if it cannot start rapidly and shut down gracefully. 
 
 If we have a look at the application's logs, we can see how long it took until the application was started. Remember this number as a reference for later.
 ```terminal:execute
@@ -33,7 +33,7 @@ command: kubectl logs -l app=product-service-00001 -c user-container | grep "Sta
 clear: true
 ```
 
-Let’s find out how you can **improve both, the startup time and resource consumption to reduce costs and maximize robustness of our application!**
+Let's find out how you can **improve both, the startup time and resource consumption to reduce costs and maximize robustness of our application!**
 
 ###### Just-in-Time vs Ahead-of-Time compilation
 In **traditional** Java applications, **Java code is compiled into Java ‘bytecode’** and packaged into a JAR archive. The Java Virtual Machine **(JVM) then executes the Java program** contained in the Java Archive on the host platform **with a bytecode interpreter**. 
@@ -58,7 +58,7 @@ With **ahead-of-time compilation** of the Java code to a standalone executable, 
 The only way to do this at present is to use **GraalVM**, but in the future, similar technology may be available, like the OpenJDK Project Leyden. 
 
 ##### GraalVM - A high-performance JDK distribution
-GraalVM is a high-performance JDK distribution by Oracle designed to **execute applications written in Java and other JVM languages** while **also providing runtimes for JavaScript, Ruby, Python, and a number of other popular languages**, which is made possible by **GraalVM’s Truffle language implementation framework**.
+GraalVM is a high-performance JDK distribution by Oracle designed to **execute applications written in Java and other JVM languages** while **also providing runtimes for JavaScript, Ruby, Python, and a number of other popular languages**, which is made possible by **GraalVM's Truffle language implementation framework**.
 
 GraalVM **adds an advanced just-in-time (JIT) optimizing compiler**, which is written in Java, to the HotSpot Java Virtual Machine.
 

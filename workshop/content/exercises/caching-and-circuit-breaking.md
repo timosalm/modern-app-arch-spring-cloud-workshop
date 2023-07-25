@@ -15,12 +15,8 @@ Traditional databases, for example, are often too brittle or unreliable for use 
 The [Spring Framework provides support for transparently adding caching](https://docs.spring.io/spring-framework/reference/integration/cache.html#page-title) to an application. 
 The cache abstraction **does not provide an actual store**. Examples of Cache providers that are supported out of the box are **EhCache, Hazelcast, Couchbase, Redis and Caffeine**. Part of the VMware Tanzu portfolio is also an in-memory data grid called **VMware Tanzu Gemfire** that is powered by Apache Geode and can be used with minimal configuration.
 
-To **improve the reliability and performance of our calls from the order service to its relational database via JDBC and the product service via REST**, let’s add a distributed caching solution, in this case **Redis**. 
-With Spring Boot’s autoconfiguration and Caching abstraction and in this case Spring Data Redis it’s very easy to add Caching to the **order-service**.
-
-**TODO: Redis**
-
-Next, the required libraries have to be added to our `pom.xml`.
+To **improve the reliability and performance of our calls from the order service to its relational database via JDBC and the product service via REST**, let's add a distributed caching solution, in this case **Redis**.
+With Spring Boot's autoconfiguration and Caching abstraction and in this case Spring Data Redis it's very easy to add Caching to the **order-service**.
 ```editor:insert-lines-before-line
 file: ~/order-service/pom.xml
 line: 68
@@ -35,7 +31,7 @@ text: |2
           </dependency>
 ```
 
-Caching and related annotations have to be declaratively enabled via the `@EnableCaching` annotation on a @Configuration class or alternatively via XML configuration.
+After adding required libraries to our `pom.xml`, caching and related annotations have to be declaratively enabled via the `@EnableCaching` annotation on a @Configuration class or alternatively via XML configuration.
 ```editor:insert-lines-before-line
 file: ~/order-service/src/main/java/com/example/orderservice/OrderServiceApplication.java
 line: 10
@@ -49,7 +45,7 @@ text: |
     @EnableCaching
 ```
 
-To enable caching for the REST call to the product service can be done by just adding the `@Cacheable` annotation with name of the associated cache to the method.
+For the REST call to the product service, caching can be added to the related method with the `@Cacheable` annotation and a name of the associated cache.
 ```editor:insert-lines-before-line
 file: ~/order-service/src/main/java/com/example/orderservice/order/ProductService.java
 line: 13
@@ -63,7 +59,7 @@ text: |2
       @Cacheable("Products")
 ```
 
-For caching of the calls to its relational database, we first have to add override all the used methods of the JpaRepository to be able to add related annotations. 
+For caching of the calls to its relational database, we first have override all the used methods of the JpaRepository to be able to add related annotations. 
 ```editor:insert-lines-before-line
 file: ~/order-service/src/main/java/com/example/orderservice/order/OrderRepository.java
 line: 8
@@ -86,8 +82,7 @@ text: |
      import org.springframework.cache.annotation.Cacheable;
 ```
 
-The cache abstraction not only allows populating caches, but also allows removing the cached data with the @CacheEvict which makes for example sense for the save method which adds a new order to the database.
-
+The cache abstraction not only allows populating caches, but also allows removing the cached data with the `@CacheEvict` which makes for example sense for the save method which adds a new order to the database.
 ```editor:insert-lines-before-line
 file: ~/order-service/src/main/java/com/example/orderservice/order/OrderRepository.java
 line: 6
@@ -101,7 +96,7 @@ text: |2
       @CacheEvict(cacheNames = {"Order", "Orders"}, allEntries = true)
 ```
 
-To apply the changes, we have to update the Workload in the environment and commit the updated source code.
+To apply the changes, we have to commit the updated source code and wait until the container is built to update our deployment.
 ```terminal:execute
 command: |
   cd order-service && git add . && git commit -m "Add caching" && git push
