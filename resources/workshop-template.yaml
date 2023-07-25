@@ -51,7 +51,7 @@ spec:
         namespace: $(session_namespace)
       rules:
       - apiGroups: [""]
-        resources: [serviceaccounts]
+        resources: [serviceaccounts, namespaces]
         verbs: [patch]
     - apiVersion: rbac.authorization.k8s.io/v1
       kind: RoleBinding
@@ -66,40 +66,6 @@ spec:
         - kind: ServiceAccount
           namespace: $(workshop_namespace)
           name: $(service_account)
-    - apiVersion: rbac.authorization.k8s.io/v1
-      kind: Role
-      metadata:
-        name: $(session_namespace)-session-default
-        namespace: $(session_namespace)
-      rules:
-        - apiGroups: [ kpack.io ]
-          resources: [ images ]
-          verbs: [ "*" ]
-        - apiGroups: [ serving.knative.dev ]
-          resources: [ services ]
-          verbs: [ "*" ]
-        - apiGroups: [ carto.run ]
-          resources: [ deliverables ]
-          verbs: [ "*" ]
-        - apiGroups: [ kappctrl.k14s.io ]
-          resources: [ apps ]
-          verbs: [ "*" ]
-        - apiGroups: [ "" ]
-          resources: [ configmaps ]
-          verbs: [ "*" ]
-    - apiVersion: rbac.authorization.k8s.io/v1
-      kind: RoleBinding
-      metadata:
-        name: $(session_namespace)-session-default-rb
-        namespace: $(session_namespace)
-      roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: Role
-        name: $(session_namespace)-session-default
-      subjects:
-        - kind: ServiceAccount
-          namespace: $(session_namespace)
-          name: default
     - apiVersion: v1
       kind: Secret
       metadata:
@@ -108,19 +74,11 @@ spec:
       data:
         #@ docker_creds = {"username": data.values.container_registry.username, "password": data.values.container_registry.password}
         .dockerconfigjson: #@ base64.encode(json.encode({"auths": {data.values.container_registry.hostname: docker_creds}}))
-    - apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        name: default
-      secrets:
-        - name: registry-credentials
-      imagePullSecrets:
-        - name: registry-credentials
     - apiVersion: carto.run/v1alpha1
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: modern-app
+          app.tanzu.vmware.com/workload-type: web
         name: order-service
       spec:
         source:
@@ -132,7 +90,7 @@ spec:
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: modern-app
+          app.tanzu.vmware.com/workload-type: web
         name: product-service
       spec:
         source:
@@ -144,7 +102,7 @@ spec:
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: modern-app
+          app.tanzu.vmware.com/workload-type: server
         name: shipping-service
       spec:
         source:
@@ -156,14 +114,11 @@ spec:
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: modern-app
+          app.tanzu.vmware.com/workload-type: web
+        annotations:
+          autoscaling.knative.dev/min-scale: "1"
         name: config-server
       spec:
-        params:
-        - name: container_port
-          value: 8888
-        - name: min_scale
-          value: 1
         env:
         - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
           value: #@ data.values.gitea.base_url + '/externalized-configuration.git'
