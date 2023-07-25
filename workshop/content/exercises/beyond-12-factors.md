@@ -77,18 +77,17 @@ url: http://zipkin-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}
 
 ##### Factor: API first
 
-###### API Gateway
-
-By designing your API first, you are able to facilitate discussion with your stakeholders (your internal team, customers, or possibly other teams within your organization who want to consume your API) well before you might have coded yourself past the point of no return. 
+The API-first approach prioritizes the design and development of the application programming interface (API) before any other aspects of the application. 
+This approach enables for example the consumers of an API to work more independently from its provider, and providers are able to facilitate discussions with stakeholders well before they might have coded themselve past the point of no return.
 
 With so many APIs in a microservices application, developers need an API Gateway that they can control!
 
-[Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway) aims to provide a simple and effective way to route to APIs and provides  features related to security and resiliency to them.
+[Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway) aims to provide a simple and effective way to route to APIs and provides features related to security and resiliency to them.
 
+The best way to create a gateway for your microservices application with Spring Cloud Gateway from scratch is to go to [start.spring.io](https://start.spring.io), add the `spring-cloud-starter-gateway` dependency, and additional dependencies based on your needs for security, distributed tracing, externalized configuration etc.
+You'll use the configuration [here](https://start.spring.io/#!type=maven-project&language=java&platformVersion=3.1.2&packaging=jar&jvmVersion=17&groupId=com.example&artifactId=gateway&name=gateway&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.gateway&dependencies=actuator,security,cloud-config-client,zipkin,cloud-gateway) for the workshop.
+It's already generated for you, so we have to unzip it now.
 
-Let‘s have a look how you can deploy and configure a gateway for your microservices application with TAP and the included VMware Spring Cloud Gateway for Kubernetes.
-
-**TODO: Provisioning via Crossplane + provide Config, (Optional) Change Endpoints to internal**
 
 ![Updated architecture with API Gateway](../images/microservice-architecture-gateway.png)
 
