@@ -54,7 +54,7 @@ text: |2
 
 In order to bind to the Config Server, you need to set the `spring.config.import` targeting the running instance.
 ```editor:append-lines-to-file
-file: ~/product-service/src/main/resources/application.yml
+file: ~/product-service/src/main/resources/application.yaml
 text: |
   spring:
     config.import: "optional:configserver:http://config-server.{{ session_namespace }}"
@@ -67,7 +67,7 @@ By default, if no application name is set, `application` will be used to identif
 file: ~/product-service/src/main/resources/application.yaml
 path: spring
 value:
-  application.name: productservice
+  application.name: product-service
 ```
 
 To apply the changes, we have to commit the updated source code and wait until the container is built to update our deployment.
