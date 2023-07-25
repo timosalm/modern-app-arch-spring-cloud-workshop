@@ -19,7 +19,7 @@ To **improve the reliability and performance of our calls from the order service
 With Spring Boot's autoconfiguration and Caching abstraction and in this case Spring Data Redis it's very easy to add Caching to the **order-service**.
 ```editor:insert-lines-before-line
 file: ~/order-service/pom.xml
-line: 68
+line: 70
 text: |2
           <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -80,6 +80,9 @@ file: ~/order-service/src/main/java/com/example/orderservice/order/OrderReposito
 line: 5
 text: |
      import org.springframework.cache.annotation.Cacheable;
+     
+     import java.util.List;
+     import java.util.Optional;
 ```
 
 The cache abstraction not only allows populating caches, but also allows removing the cached data with the `@CacheEvict` which makes for example sense for the save method which adds a new order to the database.
@@ -105,12 +108,12 @@ clear: true
 ```
 
 Let's check whether the caching works via the application logs and sending two requests to the API.
-```execute-2
-kubectl logs -l serving.knative.dev/service=order-service
-```
 ```terminal:execute
 command: curl https://order-service-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}/api/v1/orders
 clear: true
+```
+```execute-2
+kubectl logs -l serving.knative.dev/service=order-service
 ```
 ```terminal:execute
 command: curl https://order-service-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}/api/v1/orders
@@ -129,7 +132,7 @@ If for example the cache of the product list for our order service has expired a
 First, we have to add the required library to our `pom.xml`.
 ```editor:insert-lines-before-line
 file: ~/order-service/pom.xml
-line: 76
+line: 78
 text: |2
           <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -150,7 +153,6 @@ text: |2
           this.circuitBreakerFactory = circuitBreakerFactory;
 ```
 
-
 `CircuitBreakerFactory.create` will create a `CircuitBreaker` instance that provides a run method that accepts a `Supplier` and a `Function` as an argument. 
 ```editor:select-matching-text
 file: ~/order-service/src/main/java/com/example/orderservice/order/ProductService.java
@@ -160,15 +162,21 @@ text: "return Arrays.asList(Objects.requireNonNull(restTemplate.getForObject(pro
 file: ~/order-service/src/main/java/com/example/orderservice/order/ProductService.java
 text: |2
   return circuitBreakerFactory.create("products").run(() ->
-              Arrays.asList(Objects.requireNonNull(
-                restTemplate.exchange(productsApiUrl, HttpMethod.GET, new HttpEntity<>(null, headers), Product[].class).getBody()
-          )),
+              Arrays.asList(Objects.requireNonNull(restTemplate.getForObject(productsApiUrl, Product[].class))),
           throwable -> {
               log.error("Call to product service failed, using empty product list as fallback", throwable);
               return Collections.emptyList();
           });
 ```
 The `Supplier` is the code that you are going to wrap in a circuit breaker. The `Function` is the fallback that will be executed if the circuit breaker is tripped. In our case, the fallback just returns an empty product list. The function will be passed the Throwable that caused the fallback to be triggered. You can optionally exclude the fallback if you do not want to provide one.
+
+```editor:insert-lines-before-line
+file: ~/order-service/src/main/java/com/example/orderservice/order/ProductService.java
+line: 14
+text: |
+    import java.util.Collections;
+    import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+```
 
 After pushing our changes to Git, the updated source code will be automatically deployed to production. 
 ```terminal:execute
