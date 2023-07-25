@@ -292,7 +292,7 @@ spec:
               - name: zipkin
                 port: 9411
         virtualhost:
-          fqdn: zipkin-{{ session_namespace }}.{{ ingress_domain }}
+          fqdn: "zipkin-$(session_namespace).$(ingress_domain)"
     - apiVersion: carto.run/v1alpha1
       kind: Workload
       metadata:

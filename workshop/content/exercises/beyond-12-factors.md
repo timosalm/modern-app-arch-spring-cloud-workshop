@@ -143,7 +143,7 @@ To apply the changes, let's commit the updated externalized configuration and al
 ```terminal:execute
 command: |
   cd samples/externalized-configuration && git add . && git commit -m "Add external configuration for gateway" && git push
-  cd ..
+  cd ~
 clear: true
 ```
 ```terminal:execute
