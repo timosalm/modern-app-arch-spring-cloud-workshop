@@ -2,7 +2,7 @@ Technology has advanced since the original creation of the 12-factor App, and in
 
 ![Beyond the Twelfe-Factor App](../images/beyond-12-factor-app.png)
 
-In his book Beyond the Twelfe-Factor App, Kevin Hoffman presented a new set of guidelines that builds on the original 12 factor.
+In his book Beyond the **Twelfe-Factor App**, Kevin Hoffman presented a new set of guidelines that builds on the original 12 factor. The book can be downloaded [here](https://tanzu.vmware.com/content/ebooks/beyond-the-12-factor-app).
 
 On of those is **Telemetry**.
 
@@ -21,79 +21,7 @@ Spring Boot ships auto-configuration for the following tracers:
 Wavefront is now known as **Aria Operations for Applications**, our full-stack observability solution from infrastructure to applications.
 
 For this workshop we use Zipkin as our trace backend to collect and visualize the traces.
-**TODO: Use Crossplane and remove RBAC from workshop-template.yaml**
-```terminal:execute
-command: |
-  cat <<EOF | kubectl apply -f -
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: zipkin
-  spec:
-    selector:
-      matchLabels:
-        app: zipkin
-    template:
-      metadata:
-        labels:
-          app: zipkin
-      spec:
-        containers:
-        - image: openzipkin/zipkin
-          name: zipkin
-          ports:
-          - containerPort: 9411
-            protocol: TCP
-  --- 
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: zipkin
-  spec:
-    selector:
-      app: zipkin
-    ports:
-    - name: http
-      port: 9411
-      protocol: TCP
-      targetPort: 9411
-  ---
-  apiVersion: projectcontour.io/v1
-  kind: HTTPProxy
-  metadata:
-    name: zipkin
-  spec:
-    routes:
-    - conditions:
-      - prefix: /
-      services:
-      - name: zipkin
-        port: 9411
-    virtualhost:
-      fqdn: zipkin-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}
-  ---
-  apiVersion: v1
-  kind: Secret
-  metadata:
-    name: zipkin-binding-compatible
-  type: servicebinding.io/zipkin
-  stringData:
-    type: zipkin
-    provider: open-source
-    url: http://zipkin-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}
-  ---
-  apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-  kind: ResourceClaim
-  metadata:
-    name: zipkin-1
-  spec:
-    ref:
-      apiVersion: v1
-      kind: Secret
-      name: zipkin-binding-compatible
-  EOF
-clear: true
-```
+
 
 In addition to the `org.springframework.boot:spring-boot-starter-actuator` dependency, we have to add a library that bridges the Micrometer Observation API to either OpenTelemetry or Brave and one that reports traces to the selected solution.
 
@@ -183,7 +111,8 @@ url: https://tap-gui.{{ ENV_TAP_INGRESS }}/supply-chain/host/{{ session_namespac
 ```
 ... we can send a request to the order service, and have a look at the ZipKin UI to view the traces.
 ```terminal:execute
-command: curl -X POST -H "Content-Type: application/json" -d '{"productId":"1", "shippingAddress": "Stuttgart"}' https://order-service-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}/api/v1/orders
+command: |
+  curl -X POST -H "Content-Type: application/json" -d '{"productId":"1", "shippingAddress": "Stuttgart"}' https://order-service-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}/api/v1/orders
 clear: true
 ```
 

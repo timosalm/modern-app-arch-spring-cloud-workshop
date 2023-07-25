@@ -233,6 +233,37 @@ spec:
           apiVersion: v1
           kind: Secret
           name: configserver-binding-compatible
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: zipkin
+      spec:
+        selector:
+          matchLabels:
+            app: zipkin
+        template:
+          metadata:
+            labels:
+              app: zipkin
+          spec:
+            containers:
+              - image: openzipkin/zipkin
+                name: zipkin
+                ports:
+                  - containerPort: 9411
+                    protocol: TCP
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: zipkin
+      spec:
+        selector:
+          app: zipkin
+        ports:
+          - name: http
+            port: 9411
+            protocol: TCP
+            targetPort: 9411
     - apiVersion: carto.run/v1alpha1
       kind: Workload
       metadata:
