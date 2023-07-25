@@ -70,7 +70,7 @@ clear: true
 ```
 
 ```dashboard:open-url
-url: http://zipkin-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}
+url: http://zipkin-{{ session_namespace }}.{{ ingress_domain }}
 ```
 
 ![Updated architecture with Observability](../images/microservice-architecture-tracing.png)
@@ -161,7 +161,7 @@ clear: true
 ```
 We can also use ZipKin UI to see the new request flow.
 ```dashboard:open-url
-url: http://zipkin-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}
+url: http://zipkin-{{ session_namespace }}.{{ ingress_domain }}
 ```
 
 ![Updated architecture with API Gateway](../images/microservice-architecture-gateway.png)
