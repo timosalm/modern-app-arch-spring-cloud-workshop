@@ -6,6 +6,9 @@ USER root
 RUN curl -L -o /usr/local/bin/kp https://github.com/vmware-tanzu/kpack-cli/releases/download/v0.10.0/kp-linux-amd64-0.10.0 && \
   chmod 755 /usr/local/bin/kp
 
+RUN curl -L -o /usr/local/bin/hey https://hey-release.s3.us-east-2.amazonaws.com/hey_linux_amd64 && \
+    chmod 755 /usr/local/bin/hey
+
 # Install krew
 RUN \
 ( \

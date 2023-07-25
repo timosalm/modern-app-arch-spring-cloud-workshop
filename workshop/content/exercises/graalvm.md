@@ -2,40 +2,52 @@
 name: The Twelve Factors
 ```
 
-**TODO: Use Shipping service for example. Due to build time, already deploy something beforehand**
-
+####  Factor 8: Concurrency
 **Factor eight**, concurrency, advises us that **cloud-native applications should scale out using the process model**. There was a time when, if an application reached the limit of its capacity, the solution was adding CPUs, RAM, and other resources (virtual or physical), which is called **vertical scaling**.
 
 A much more **modern approach**, one ideal for the kind of elastic scalability that the cloud supports, is to **scale out, or horizontally** where you create multiple instances of your application, and then distribute the load among those.
-As you already learned, **VMware Tanzu Application Platform provides horizontal auto-scaling capabilities via Knative**.
+For this workshop, we are using a serverless application runtime for Kubernetes which provides **configurable horizontal auto-scaling** and **scale to zero** that is called **Knative**.
+
+Knative, is an open-source community project, which provides a simple, consistent layer over Kubernetes that solves common problems of deploying software, connecting disparate systems together, upgrading software, observing software, routing traffic, and scaling automatically.
+```dashboard:open-url
+url: https://knative.dev/docs/
+```
+
+The major **subprojects of Knative** are Serving and Eventing.
+- **Serving** supports deploying upgrading, routing, and scaling of stateless applications and functions
+- **Eventing** enables developers to use an event-driven architecture with serverless applications and is **out of the scope of this workshop**
+- **Functions**: Enables developers to easily create, build, and deploy stateless, event-driven functions
+
+**Knative Serving abstracts away a lot of those resources** we usually have to configure to get an application running, like a deployment, service, ingress etc.
+In addition to auto-scaling, it offers features like rollbacks, canary and blue-green deployment via revisions, and traffic splitting.
 
 By executing the following two commands. You should be able to see how the number of pods will be scaled up based on the generated traffic with the `hey` tool.
 ```execute-2
-watch kubectl get pods
+watch kubectl get pods -l serving.knative.dev/service=product-service
 ```
-**TODO: Adjust parameters / automatically terminate to not overload the cluster**
 ```terminal:execute
-command: hey -z 60s -c 1000 -m GET https://product-service-{{session_namespace}}.{{ ENV_TAP_INGRESS }}
-clear: true
-```
-Exit both commands with `ctrl + c` and take a closer look at the CPU and memory consumption of the `user-container` and remember them for later reference.
-```terminal:execute
-command: kubectl top pods -l app=product-service-00001 --containers
+command: hey -n 1000 -c 1000 -m GET https://product-service-{{session_namespace}}.{{ ENV_TAP_INGRESS }}/api/v1/products
 clear: true
 ```
 
-**Disposability is the ninth of the original 12 factors**.
+Have a closer look at the CPU and memory consumption of the `user-container` and remember them for later reference.
+```terminal:execute
+command: kubectl top pods -l serving.knative.dev/service=product-service --containers
+clear: true
+```
+
+####  Factor 9: Disposability
 A cloud-native **application's processes** are disposable, which means they **can be started or stopped rapidly**. An application cannot scale, deploy, release, or recover rapidly if it cannot start rapidly and shut down gracefully. 
 
 If we have a look at the application's logs, we can see how long it took until the application was started. Remember this number as a reference for later.
 ```terminal:execute
-command: kubectl logs -l app=product-service-00001 -c user-container | grep "Started ProductServiceApplication"
+command: kubectl logs -l serving.knative.dev/service=product-service -c workload | grep "Started"
 clear: true
 ```
 
 Let's find out how you can **improve both, the startup time and resource consumption to reduce costs and maximize robustness of our application!**
 
-###### Just-in-Time vs Ahead-of-Time compilation
+##### Just-in-Time vs Ahead-of-Time compilation
 In **traditional** Java applications, **Java code is compiled into Java ‘bytecode’** and packaged into a JAR archive. The Java Virtual Machine **(JVM) then executes the Java program** contained in the Java Archive on the host platform **with a bytecode interpreter**. 
 
 The **execution of Java bytecode by an interpreter is always slower** than the execution of the **same program compiled into a native machine language**. This problem is mitigated by **just-in-time (JIT) compilers**. 
@@ -101,32 +113,37 @@ When these restrictions are in place, it becomes possible for Spring to perform 
 
 You can **get started** very **easily by using start.spring.io to create a new project**.
 
-The `spring-boot-starter-parent` declares a native profile that configures the executions that need to run to create a native image. You can activate profiles using the `-P` flag on the command line.
+The `spring-boot-starter-parent` declares a `native` profile that configures the executions that need to run to create a native image. You can activate profiles using the `-P` flag on the command line.
 
 Spring Boot includes buildpack support for native images directly for both Maven and Gradle. The resulting image doesn’t contain a JVM, which leads to smaller images.
+```
+./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=myorg/myapp -Pnative
+./gradlew bootBuildImage --imageName=myorg/myapp -Pnative
+```
 
 For the second option to build your native image, the `native-maven-plugin` was added to our pom file to be able to invoke the native image compiler from your build.
 
-Let's now see how the product service **performs as a native image on a Serverless runtime**!
+Let's now see how the product service **performs as a native image on a Serverless runtime**! 
+As you learned, compilation of native images takes much longer and consumes more resources. Therefore, it's already done for you and the application is running in your cluster.
+
+Execute both commands, to check how fast the number of pods will be scaled up.
+```execute-2
+watch kubectl get pods -l serving.knative.dev/service=product-service-native
+```
+```terminal:execute
+command: hey -n 1000 -c 1000 -m GET https://product-service-native-{{session_namespace}}.{{ ENV_TAP_INGRESS }}/api/v1/products
+clear: true
+```
 
 The startup time is dramatically reduced compared to the same application running on the JVM ...
 ```terminal:execute
-command: kubectl logs -l app=spring-boot-hello-world-native-00001 -c user-container | grep "Started HelloWorldApplication"
+command: kubectl logs -l serving.knative.dev/service=product-service-native -c workload | grep "Started"
 clear: true
 ```
 
-... and we can also check how fast the number of pods will be scaled up.
-```execute-2
-watch kubectl get pods
-```
+... and the memory and CPU consumption of the `workload` is also reduced.
 ```terminal:execute
-command: hey -z 60s -c 1000 -m GET https://product-service-native-{{session_namespace}}.{{ ENV_TAP_INGRESS }}
-clear: true
-```
-
-The memory and CPU consumption of the `user-container` is also reduced.
-```terminal:execute
-command: kubectl top pods -l app=product-service-native-00001 --containers
+command: kubectl top pods -l serving.knative.dev/service=product-service --containers
 clear: true
 ```
 
