@@ -1,0 +1,183 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain
+metadata:
+  name: modern-app-arch-supplychain
+spec:
+  resources:
+    - name: image-builder
+      params:
+        - name: registry
+          value:
+            repository: #@ data.values.container_registry.project
+            server: #@ data.values.container_registry.hostname
+      templateRef:
+        kind: ClusterImageTemplate
+        name: modern-app-arch-image-template
+    - name: deliverable
+      params:
+        - name: container_port
+          default: 8080
+        - name: min_scale
+          value: 0
+      images:
+        - name: image
+          resource: image-builder
+      templateRef:
+        kind: ClusterTemplate
+        name: modern-app-arch-deliverable-template
+  selector:
+    app.tanzu.vmware.com/workload-type: modern-app
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterImageTemplate
+metadata:
+  name: modern-app-arch-image-template
+spec:
+  imagePath: .status.latestImage
+  ytt: |
+    #@ load("@ytt:data", "data")
+    
+    #@ def image():
+    #@   return "/".join([
+    #@    data.values.params.registry.server,
+    #@    data.values.params.registry.repository,
+    #@    "-".join([
+    #@      data.values.workload.metadata.name,
+    #@      data.values.workload.metadata.namespace,
+    #@    ])
+    #@   ])
+    #@ end
+    apiVersion: kpack.io/v1alpha2
+    kind: Image
+    metadata:
+      name: #@ data.values.workload.metadata.name
+    spec:
+      tag: #@ image()
+      source:
+        git:
+          url: #@ data.values.workload.spec.source.git.url
+          revision: #@ data.values.workload.spec.source.git.ref.branch
+        #@ if/end hasattr(data.values.workload.spec.source, "subPath"):
+        subPath: #@ data.values.workload.spec.source.subPath
+      builder:
+        kind: ClusterBuilder
+        name: default
+      build:
+        env:
+          - name: BP_JVM_VERSION
+            value: "17"
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: modern-app-arch-deliverable-template
+spec:
+  ytt: |
+    #@ load("@ytt:data", "data")
+    apiVersion: carto.run/v1alpha1
+    kind: Deliverable
+    metadata:
+      labels:
+        app.tanzu.vmware.com/deliverable-type: modern-app
+      name: #@ data.values.workload.metadata.name
+    spec:
+      params:
+        - name: container_port
+          value: #@ data.values.params.container_port
+        - name: min_scale
+          value: #@ data.values.params.min_scale
+        #@ if hasattr(data.values.workload.spec, "env"):
+        - name: env
+          value: #@ data.values.workload.spec.env
+        #@ end
+      source:
+        image:  #@ data.values.image
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterDelivery
+metadata:
+  name: modern-app-arch-delivery
+spec:
+  resources:
+    - name: deployer
+      params:
+      - name: env
+        default: []
+      templateRef:
+        kind: ClusterTemplate
+        name: modern-app-arch-app-deploy
+  selector:
+    app.tanzu.vmware.com/deliverable-type: modern-app
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: modern-app-arch-app-deploy
+spec:
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:yaml", "yaml")
+    
+    #@ def delivery():
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    metadata:
+      name: #@ data.values.deliverable.metadata.name
+    spec:
+      template:
+        metadata:
+          annotations:
+            autoscaling.knative.dev/min-scale: #@ str(data.values.params.min_scale)
+        spec:
+          containers:
+            - name: workload
+              image: #@ data.values.deliverable.spec.source.image
+              ports:
+                - containerPort:  #@ data.values.params.container_port
+                  protocol: TCP
+              env: #@ data.values.params.env
+              livenessProbe:
+                httpGet:
+                  path: /actuator/health/liveness
+                  port: #@ data.values.params.container_port
+                  scheme: HTTP
+              readinessProbe:
+                httpGet:
+                  path: /actuator/health/rediness
+                  port: #@ data.values.params.container_port
+                  scheme: HTTP
+              securityContext:
+                runAsUser: 1000
+    #@ end
+    ---
+    apiVersion: kappctrl.k14s.io/v1alpha1
+    kind: App
+    metadata:
+      name: #@ data.values.deliverable.metadata.name
+    spec:
+      deploy:
+      - kapp: {}
+      fetch:
+      - inline:
+          paths:
+            delivery.yml: #@ yaml.encode(delivery())
+            config.yml: |
+              ---
+              apiVersion: kapp.k14s.io/v1alpha1
+              kind: Config
+              rebaseRules:
+                - path: [metadata, annotations, serving.knative.dev/creator]
+                  type: copy
+                  sources: [new, existing]
+                  resourceMatchers: &matchers
+                    - apiVersionKindMatcher: {apiVersion: serving.knative.dev/v1, kind: Service}
+                - path: [metadata, annotations, serving.knative.dev/lastModifier]
+                  type: copy
+                  sources: [new, existing]
+                  resourceMatchers: *matchers
+      serviceAccountName: default
+      template:
+      - ytt: {}
+    

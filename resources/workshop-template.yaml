@@ -16,131 +16,6 @@ spec:
   content:
     image: #@ "{}".format(data.values.workshop_container_image)
     files: #@ "github.com/{}/modern-app-arch-spring-cloud-workshop?ref={}".format(data.values.workshop_git.username,data.values.workshop_git.branch)
-  environment:
-    objects:
-    - apiVersion: carto.run/v1alpha1
-      kind: ClusterSupplyChain
-      metadata:
-        name: modern-app-arch-supplychain
-      spec:
-        resources:
-        - name: image-builder
-          params:
-          - name: registry
-            value:
-              repository: #@ data.values.container_registry.project
-              server: #@ data.values.container_registry.hostname
-          templateRef:
-            kind: ClusterImageTemplate
-            name: modern-app-arch-image-template
-        - name: deliverable
-          params:
-          - name: container-port
-            default: 8080
-          - name: min-scale
-            value: 0
-          images:
-          - name: image
-            resource: image-builder
-          templateRef:
-            kind: ClusterTemplate
-            name: modern-app-arch-deliverable-template
-        selector:
-          app.tanzu.vmware.com/workload-type: modern-app
-    - apiVersion: carto.run/v1alpha1
-      kind: ClusterImageTemplate
-      metadata:
-        name: modern-app-arch-image-template
-      spec:
-        template:
-          apiVersion: kpack.io/v1alpha2
-          kind: Image
-          metadata:
-            name: $(workload.metadata.name)$
-          spec:
-            tag: $(params.registry.server)$/$(params.registry.repository)$
-            source:
-              git:
-                url: $(workload.spec.source.url)$
-                revision: $(workload.spec.source.ref.branch)$
-            builder:
-              kind: ClusterBuilder
-              name: default
-            build:
-              env:
-                - name: BP_JVM_VERSION
-                  value: "17"
-    - apiVersion: carto.run/v1alpha1
-      kind: ClusterTemplate
-      metadata:
-        name: modern-app-arch-deliverable-template
-      spec:
-        template:
-          apiVersion: carto.run/v1alpha1
-          kind: Deliverable
-          metadata:
-            name: $(workload.metadata.name)$
-          spec:
-            params:
-            - name: container-port
-              value: $(params.container-port)$
-            - name: min-scale
-              value: $(params.min-scale)$
-            source:
-              image: $(image)$
-    - apiVersion: carto.run/v1alpha1
-      kind: ClusterDelivery
-      metadata:
-        name: modern-app-arch-delivery
-      spec:
-        resources:
-          - name: deployer
-            templateRef:
-              kind: ClusterDeploymentTemplate
-              name: app-deploy
-        selector:
-          app.tanzu.vmware.com/deliverable-type: modern-app
-    - apiVersion: carto.run/v1alpha1
-      kind: ClusterDeploymentTemplate
-      metadata:
-        name: app-deploy
-      spec:
-        observedCompletion:
-          failed:
-            key: .status.conditions[?(@.type=="Ready")].status
-            value: "False"
-          succeeded:
-            key: .status.conditions[?(@.type=="Ready")].status
-            value: "True"
-        template:
-          apiVersion: serving.knative.dev/v1
-          kind: Service
-          metadata:
-            name: $(deliverable.metadata.name)$
-          spec:
-            template:
-              metadata:
-                annotations:
-                  autoscaling.knative.dev/min-scale:  "$(params.min-scale)$"
-              spec:
-                containers:
-                - name: workload
-                  image: $(deliverable.spec.source.image)$
-                  ports:
-                  - containerPort: $(params.container-port)$
-                    protocol: TCP
-                  livenessProbe:
-                    httpGet:
-                      path: /livez
-                      port: 8080
-                      scheme: HTTP
-                  readinessProbe:
-                    httpGet:
-                      path: /readyz
-                      port: 8080
-                      scheme: HTTP
-                  securityContext:
-                    runAsUser: 1000
   session:
     namespaces:
       budget: custom
@@ -191,6 +66,40 @@ spec:
         - kind: ServiceAccount
           namespace: $(workshop_namespace)
           name: $(service_account)
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: $(session_namespace)-session-default
+        namespace: $(session_namespace)
+      rules:
+        - apiGroups: [ kpack.io ]
+          resources: [ images ]
+          verbs: [ "*" ]
+        - apiGroups: [ serving.knative.dev ]
+          resources: [ services ]
+          verbs: [ "*" ]
+        - apiGroups: [ carto.run ]
+          resources: [ deliverables ]
+          verbs: [ "*" ]
+        - apiGroups: [ kappctrl.k14s.io ]
+          resources: [ apps ]
+          verbs: [ "*" ]
+        - apiGroups: [ "" ]
+          resources: [ configmaps ]
+          verbs: [ "*" ]
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: $(session_namespace)-session-default-rb
+        namespace: $(session_namespace)
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: $(session_namespace)-session-default
+      subjects:
+        - kind: ServiceAccount
+          namespace: $(session_namespace)
+          name: default
     - apiVersion: v1
       kind: Secret
       metadata:
@@ -199,6 +108,14 @@ spec:
       data:
         #@ docker_creds = {"username": data.values.container_registry.username, "password": data.values.container_registry.password}
         .dockerconfigjson: #@ base64.encode(json.encode({"auths": {data.values.container_registry.hostname: docker_creds}}))
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: default
+      secrets:
+        - name: registry-credentials
+      imagePullSecrets:
+        - name: registry-credentials
     - apiVersion: carto.run/v1alpha1
       kind: Workload
       metadata:
@@ -243,13 +160,18 @@ spec:
         name: config-server
       spec:
         params:
-        - name: container-port
+        - name: container_port
           value: 8888
-        - name: min-scale
+        - name: min_scale
           value: 1
+        env:
+        - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
+          value: #@ data.values.gitea.base_url + '/externalized-configuration.git'
+        - name: SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL
+          value: $(session_namespace)
         source:
           git:
             ref:
               branch: main
             url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop.git
-            subPath: samples/config-server
+          subPath: samples/config-server
