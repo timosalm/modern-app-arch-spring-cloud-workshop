@@ -24,6 +24,6 @@ class Product implements Serializable { // Serializable required for Redis cache
 
     @Override
     public String toString() {
-        return "Product{id=" + id + '}';
+        return "Product.java{id=" + id + '}';
     }
 }

@@ -69,6 +69,16 @@ spec:
     - apiVersion: v1
       kind: Secret
       metadata:
+        annotations:
+          tekton.dev/git-0: #@ data.values.gitops.host
+        name: git-https
+      type: kubernetes.io/basic-auth
+      stringData:
+        username: #@ data.values.gitops.username
+        password: #@ data.values.gitops.password
+    - apiVersion: v1
+      kind: Secret
+      metadata:
         name: registry-credentials
       type: kubernetes.io/dockerconfigjson
       data:
@@ -78,21 +88,50 @@ spec:
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: web
+          apps.tanzu.vmware.com/workload-type: web
         name: order-service
       spec:
+        build:
+          env:
+          - name: BP_JVM_VERSION
+            value: "17"
         source:
           git:
             ref:
               branch: $(session_namespace)
             url: #@ data.values.gitea.base_url + '/order-service.git'
+        serviceClaims:
+        - name: db
+          ref:
+            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+            kind: ClassClaim
+            name: postgres-1
+        - name: rmq
+          ref:
+            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+            kind: ClassClaim
+            name: rmq-1
+        - name: cache
+          ref:
+            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+            kind: ClassClaim
+            name: redis-1
+        - name: config-server
+          ref:
+            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+            kind: ResourceClaim
+            name: configserver-binding-compatible
     - apiVersion: carto.run/v1alpha1
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: web
+          apps.tanzu.vmware.com/workload-type: web
         name: product-service
       spec:
+        build:
+          env:
+          - name: BP_JVM_VERSION
+            value: "17"
         source:
           git:
             ref:
@@ -102,19 +141,38 @@ spec:
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: server
+          apps.tanzu.vmware.com/workload-type: server
         name: shipping-service
       spec:
+        build:
+          env:
+          - name: BP_JVM_VERSION
+            value: "17"
         source:
+          build:
+            env:
+            - name: BP_JVM_VERSION
+              value: "17"
           git:
             ref:
               branch: $(session_namespace)
             url: #@ data.values.gitea.base_url + '/shipping-service.git'
+        serviceClaims:
+        - name: rmq
+          ref:
+            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+            kind: ClassClaim
+            name: rmq-1
+        - name: config-server
+          ref:
+            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+            kind: ResourceClaim
+            name: configserver-binding-compatible
     - apiVersion: carto.run/v1alpha1
       kind: Workload
       metadata:
         labels:
-          app.tanzu.vmware.com/workload-type: web
+          apps.tanzu.vmware.com/workload-type: web
         annotations:
           autoscaling.knative.dev/min-scale: "1"
         name: config-server
@@ -124,9 +182,51 @@ spec:
           value: #@ data.values.gitea.base_url + '/externalized-configuration.git'
         - name: SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL
           value: $(session_namespace)
+        build:
+          env:
+          - name: BP_JVM_VERSION
+            value: "17"
         source:
           git:
             ref:
               branch: main
             url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop.git
           subPath: samples/config-server
+    - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      metadata:
+        name: rmq-1
+      spec:
+        classRef:
+          name: rabbitmq-unmanaged
+    - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      metadata:
+        name: postgres-1
+      spec:
+        classRef:
+          name: postgresql-unmanaged
+    - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      metadata:
+        name: redis-1
+      spec:
+        classRef:
+          name: redis-unmanaged
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: configserver-binding-compatible
+      type: Opaque
+      stringData:
+        type: config
+        uri: http://config-server.$(session_namespace)
+    - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ResourceClaim
+      metadata:
+        name: configserver-binding-compatible
+      spec:
+        ref:
+          apiVersion: v1
+          kind: Secret
+          name: configserver-binding-compatible

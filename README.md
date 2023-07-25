@@ -2,10 +2,7 @@
 
 ## Prerequisites
 
-- An up-to-date Kubernetes cluster with educates installed 
-- [kpack](https://github.com/buildpacks-community/kpack) / VMware Tanzu Build Service (which is part of VMware Tanzu Application Platform) is used for container image building and has to be installed in the cluster.
-- [Knative](https://knative.dev) (which is part of VMware Tanzu Application Platform) is used as a Serverless runtime and has to be installed in the cluster.
-- [Cartographer](https://cartographer.sh) (which is part of VMware Tanzu Application Platform) is used for the automation of the path to production and has to be installed in the cluster.
+- An up-to-date Kubernetes cluster with VMware Tanzu Application Platform >1.5 installed 
 - [Gitea](https://gitea.io) for the creation of Git repositories for each session with ENABLE_PUSH_CREATE_USER enabled in the app.ini file
 
 ## Workshop installation

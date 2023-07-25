@@ -6,16 +6,17 @@ In the cloud, you have multiple applications, environments, and service instance
 With the **Spring Cloud Config Server**, you have a central place to manage external properties for applications across all environments by integrating multiple version control systems to keep your config safe.
 The Config Server is implemented with Spring Boot, so you can also try it out easily on your local machine or even embed it in another application - however it runs best as a standalone application.
 
-**TODO**
-There is also an official container image available (`springcloud/configserver`). As it's not mentioned in the documentation anymore and last time update years ago, I recommend building your own, if you want to run the config server in a container.
-For this workshop, a Config Server is already running in your Kubernetes namespace.
+To deploy it on a container runtime, there is also an official container image available (`springcloud/configserver`). As it's not mentioned in the documentation anymore and last time update years ago, I recommend building your own.
+For this workshop, a Config Server is already running in your Kubernetes namespace based on the following source code.
+```editor:open-file
+file: ~/samples/config-server/src/main/java/com/example/configserver/ConfigServerApplication.java
+```
 
-A Git repository as source of the externalized configuration is already created for you and the Config Server is configured for it.
+It's configured for a Git repository as source of the externalized configuration that is also already created for you.
 ```dashboard:open-url
 url: {{ ENV_GITEA_BASE_URL }}/externalized-configuration/src/{{ session_namespace }}
 ```
 In addition to the url of your repository with the externalized configuration, `defaultLabel` is also set, which can be a branch name, a tag name, or a specific Git commit hash to provide different configurations for different environments. In our case, it's just a branch for your workshop session.
-
 
 To consume the externalized configuration via the Config Server in our application, you first have to add the `org.springframework.cloud:spring-cloud-starter-config` library to it.
 ```editor:insert-lines-before-line
@@ -32,31 +33,31 @@ The umbrella project Spring Cloud consists of independent projects with differen
 file: ~/product-service/pom.xml
 line: 18
 text: |2
-		<spring-cloud.version>2022.0.3</spring-cloud.version>
+		  <spring-cloud.version>2022.0.3</spring-cloud.version>
 ```
 ```editor:insert-lines-before-line
 file: ~/product-service/pom.xml
-line: 40
+line: 50
 text: |2
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+	  <dependencyManagement>
+	  	  <dependencies>
+			  <dependency>
+				  <groupId>org.springframework.cloud</groupId>
+				  <artifactId>spring-cloud-dependencies</artifactId>
+				  <version>${spring-cloud.version}</version>
+				  <type>pom</type>
+				  <scope>import</scope>
+			  </dependency>
+		  </dependencies>
+	  </dependencyManagement>
 ```
 
 In order to bind to the Config Server, you need to set the `spring.config.import` targeting the running instance.
-```editor:insert-value-into-yaml
-file: ~/product-service/src/main/resources/application.yaml
-path: spring
-value:
-  config.import: "optional:configserver:http://configserver"
+```editor:append-lines-to-file
+file: ~/product-service/src/main/resources/application.yml
+text: |
+  spring:
+    config.import: "optional:configserver:http://config-server.{{ session_namespace }}"
 ```
 Removing the `optional:` prefix will cause the application to fail if it is unable to connect to the Config Server.
 
@@ -76,8 +77,6 @@ command: |
   cd ..
 clear: true
 ```
-
-**TODO** Deploy
 
 Then we should be able to see a longer product list configured via our Git repository.
 ```terminal:execute
