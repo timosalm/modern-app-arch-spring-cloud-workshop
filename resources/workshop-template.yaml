@@ -176,6 +176,22 @@ spec:
       metadata:
         labels:
           apps.tanzu.vmware.com/workload-type: web
+        name: gateway
+      spec:
+        build:
+          env:
+            - name: BP_JVM_VERSION
+              value: "17"
+        source:
+          git:
+            ref:
+              branch: $(session_namespace)
+            url: #@ data.values.gitea.base_url + '/gateway.git'
+    - apiVersion: carto.run/v1alpha1
+      kind: Workload
+      metadata:
+        labels:
+          apps.tanzu.vmware.com/workload-type: web
         annotations:
           autoscaling.knative.dev/min-scale: "1"
         name: config-server
