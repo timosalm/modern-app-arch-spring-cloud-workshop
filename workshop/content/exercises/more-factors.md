@@ -29,6 +29,8 @@ The most obvious way to create a container image for your application is to writ
 
 As you can see, in general, it is relatively easy and requires little effort to containerize an application, but whether you should go into production with it is another question because it is hard to create an optimized and secure container image (or Dockerfile).
 
+![Example for a simple vs an optimized container image](../images/simple-vs-optimized-dockerfile.png)
+
 To improve container image creation, **Buildpacks** were conceived by Heroku in 2011. Since then, they have been adopted by Cloud Foundry and other PaaS.
 The new generation of buildpacks, the [Cloud Native Buildpacks](https://buildpacks.io), is an incubating project in the CNCF which was initiated by Pivotal (now part of VMware) and Heroku in 2018.
 
