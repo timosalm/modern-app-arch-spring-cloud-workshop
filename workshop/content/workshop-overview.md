@@ -12,14 +12,14 @@ All the microservices are implemented using Spring Boot and initially created on
 
 ![](images/spring-logo.svg)
 
-With the acquisition of Pivotal, VMware is now the vendor of Spring and Spring plays an important role in the VMware Tanzu portfolio.
+With the acquisition of Pivotal, VMware is now the vendor of Spring, and Spring plays an important role in the VMware Tanzu portfolio.
 
 The goal of **Spring** is to simplify and accelerate application development, and due to its autoconfiguration, **Spring Boot** is the foundation for fast development of production-ready applications. 
 
 **Spring Cloud** supports the development of microservice architectures by implementing proven patterns for example for resilience, reliability, and coordination.
 
 With the help of Spring Boot and Cloud, it's possible to mitigate a lot of challenges of our typical microservice application, but regarding the deployment, there is for example still a high effort to manage the cloud infrastructure for the microservice, and the application lifecycle is difficult to manage. 
-So-called **application-aware platforms** take on the challenges by abstracting away all platform and infrastructure specifics and gives development teams an interface where they only have to define the requirements of the applications they want to run on the platform. 
+So-called **application-aware platforms** take on the challenges by abstracting away all platform and infrastructure specifics and give development teams an interface where they only have to define the requirements of the applications they want to run on the platform. 
 
 ![Application-aware platforms remove the burden from the developers](images/app-aware.png)
 

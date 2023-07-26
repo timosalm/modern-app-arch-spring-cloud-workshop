@@ -4,19 +4,19 @@ In the cloud, you have multiple applications, environments, and service instance
 
 [Spring Cloud Config](https://docs.spring.io/spring-cloud-config/docs/current/reference/html/) is designed to ease this burden by providing server-side and client-side support for externalized configuration in a distributed system. 
 With the **Spring Cloud Config Server**, you have a central place to manage external properties for applications across all environments by integrating multiple version control systems to keep your config safe.
-The Config Server is implemented with Spring Boot, so you can also try it out easily on your local machine or even embed it in another application - however it runs best as a standalone application.
+The Config Server is implemented with Spring Boot, so you can also try it out easily on your local machine or even embed it in another application - however, it runs best as a standalone application.
 
-To deploy it on a container runtime, there is also an official container image available (`springcloud/configserver`). As it's not mentioned in the documentation anymore and last time update years ago, I recommend building your own.
+To deploy it on a container runtime, an official container image is available (`springcloud/configserver`). As it's not mentioned in the documentation anymore, and last time updated years ago, I recommend building your own.
 For this workshop, a Config Server is already running in your Kubernetes namespace based on the following source code.
 ```editor:open-file
 file: ~/samples/config-server/src/main/java/com/example/configserver/ConfigServerApplication.java
 ```
 
-It's configured for a Git repository as source of the externalized configuration that is also already created for you.
+It's configured for a Git repository as a source of the externalized configuration that is also already created for you.
 ```dashboard:open-url
 url: {{ ENV_GITEA_BASE_URL }}/externalized-configuration/src/{{ session_namespace }}
 ```
-In addition to the url of your repository with the externalized configuration, `defaultLabel` is also set, which can be a branch name, a tag name, or a specific Git commit hash to provide different configurations for different environments. In our case, it's just a branch for your workshop session.
+In addition to the URL of your repository with the externalized configuration, `defaultLabel` is also set, which can be a branch name, a tag name, or a specific Git commit hash to provide different configurations for different environments. In our case, it's just a branch for your workshop session.
 
 To consume the externalized configuration via the Config Server in our application, you first have to add the `org.springframework.cloud:spring-cloud-starter-config` library to it.
 ```editor:insert-lines-before-line
@@ -28,7 +28,7 @@ text: |2
             <artifactId>spring-cloud-starter-config</artifactId>
           </dependency>
 ```
-The umbrella project Spring Cloud consists of independent projects with different release cadences. To manage the portfolio a BOM (Bill of Materials) is published with a curated set of dependencies, which will be automatically added if you add Spring Cloud libraries at [start.spring.io](https://start.spring.io).
+The umbrella project Spring Cloud consists of independent projects with different release cadences. To manage the portfolio a BOM (Bill of Materials), is published with a curated set of dependencies, which will be automatically added if you add Spring Cloud libraries at [start.spring.io](https://start.spring.io).
 ```editor:insert-lines-before-line
 file: ~/product-service/pom.xml
 line: 18
@@ -61,7 +61,7 @@ text: |
 ```
 Removing the `optional:` prefix will cause the application to fail if it is unable to connect to the Config Server.
 
-The Config Server is able to identify the correct configurations for a certain application or microservice via customizable patters the file names/paths have to conform to, the application name set via `spring.application.name`, and the list of profiles it's running with (`spring.profiles.active`).
+The Config Server is able to identify the correct configurations for a certain application or microservice via customizable patterns the file names/paths have to conform to, the application name set via `spring.application.name`, and the list of profiles it's running with (`spring.profiles.active`).
 By default, if no application name is set, `application` will be used to identify the configuration.
 ```editor:insert-value-into-yaml
 file: ~/product-service/src/main/resources/application.yaml

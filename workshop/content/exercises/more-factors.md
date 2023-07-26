@@ -4,15 +4,15 @@ name: The Twelve Factors
 
 #### Factor 5: Build, release, run
 The **fifth factor** calls for the **strict separation between the build, release, and run stages**. 
-For this workshop, an open-source solution called [Cartographer](https://cartographer.sh) is used for the automation of the path to production, that is designed to **fulfill this best-practice**.
+For this workshop, an open-source solution called [Cartographer](https://cartographer.sh) is used for the automation of the path to production, that is designed to **fulfill this best practice**.
 
 #### Factor 7: Port binding
 
 A note regarding the seventh factor that **services need to be exposed for external or inter-service access with well-defined ports**.
 
-[Spring Cloud's Registry interface](https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#discovery-client) solves this problem and provides client-side libraries for **service registry implementations such as Consul, Zookeeper, Eureka plus Kubernetes**.
+[Spring Cloud's Registry interface](https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#discovery-client) solves this problem and provides client-side libraries for **service registry implementations such as Consul, Zookeeper, Eureka, plus Kubernetes**.
 
-In Kubernetes, each service can interface with another service by using its service name, which is **resolved by Kubernetes DNS support and the benefit of the Spring Cloud's Registry interface is limited**. 
+In Kubernetes, each service can interface with another service by using its service name, which is **resolved by Kubernetes DNS support, and the benefit of the Spring Cloud's Registry interface is limited**. 
 
 **Due to even more capabilities like proper load balancing, we decided to use the Ingress Controller Contour as a solution for the factor**.
 
@@ -21,9 +21,9 @@ In Kubernetes, each service can interface with another service by using its serv
 ####  Factor 10: Dev/prod parity
 
 The tenth factor emphasizes the **importance of keeping all of our environments as similar as possible** to minimize potential discrepancies that could lead to unexpected behavior in production.
-**Containers play a crucial role in achieving this** by encapsulating the application and its dependencies including the operating system, ensuring that it runs consistently across different environments. 
+**Containers play a crucial role in achieving this** by encapsulating the application and its dependencies, including the operating system, ensuring that it runs consistently across different environments. 
 
-The most obvious way to create a container image for your application is to write a **Dockerfile**, run `docker build`, and push it to the container registry of our choice via `docker push`.
+The most obvious way to create a container image for your application is to write a **Dockerfile**, run `docker build`, and push it to the container registry of your choice via `docker push`.
 
 ![](../images/dockerfile.png)
 
@@ -45,7 +45,7 @@ The biggest benefits of CNBs are increased security, minimized risk, and increas
 ./gradlew bootBuildImage --imageName=myorg/myapp
 ```
 
-With all the benefits of Cloud Native Buildpacks, one of the **biggest challenges with container images still is to keep the operating system, used libraries, etc. up-to-date** in order to minimize attack vectors by CVEs.
+With all the benefits of Cloud Native Buildpacks, one of the **biggest challenges with container images still is to keep the operating system, used libraries, etc., up-to-date** in order to minimize attack vectors by CVEs.
 The open source tool [kpack](https://github.com/buildpacks-community/kpack), which is used to build container images for your application and running on Kubernetes, makes it possible to **automatically recreate and push an updated container image to the target registry if there is a new version of the buildpack or the base operating system available** (e.g. due to a CVE).
 
 ####  Factor 11: Logs
@@ -56,6 +56,6 @@ The key point with logs in a cloud-native application is that it writes all of i
 ####  Factor 12: Admin processes
 
 The final factor states that administrative tasks, such as database migrations and one-time scripts, should be executed in the same environment and manner as regular application code. 
-This factor is a bit outdated. You should avoid administrative process as much as possible for security reasons and try to find a design/architecture that suits your needs better.
+This factor is a bit outdated. You should avoid administrative processes as much as possible for security reasons and try to find a design/architecture that suits your needs better.
 
-The **factors eight and nine will be covered in the next section**.
+**Factors eight and nine will be covered in the next section**.
