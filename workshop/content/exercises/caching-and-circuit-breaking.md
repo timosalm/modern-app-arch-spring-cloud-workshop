@@ -192,7 +192,7 @@ clear: true
 
 As soon as the updated application is running, we can test the functionality by terminating the product service, and sending a request to the order service. 
 ```execute-2
-kubectl logs -l serving.knative.dev/service=prouduct-service -f
+kubectl logs -l serving.knative.dev/service=order-service -f
 ```
 
 ```terminal:execute
@@ -205,7 +205,7 @@ command: |
   curl -X POST -H "Content-Type: application/json" -d '{"productId":"1", "shippingAddress": "Stuttgart"}' https://order-service-{{ session_namespace }}.{{ ENV_TAP_INGRESS }}/api/v1/orders
 clear: true
 ```
-If everything works as expected the order service should fall back to an empty product list instead.
+If everything works as expected the order service should fall back to an empty product list instead, and you should see the log entry `Call to product service failed, using empty product list as fallback`.
 
 ```terminal:interrupt
 session: 2

@@ -17,11 +17,11 @@ spec:
     updates:
       workshop: true
     sessions:
-      maximum: 40
+      maximum: 50
     reserved: 0
   workshops:
     - name: modern-app-arch-spring-cloud-workshop
-      capacity: 40
-      reserved: 1
+      capacity: 50
+      reserved: 40
       expires: 3h
       orphaned: 1h
