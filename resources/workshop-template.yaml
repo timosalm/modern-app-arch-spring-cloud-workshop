@@ -21,6 +21,10 @@ spec:
       budget: custom
       role: view
     applications:
+      files:
+        enabled: true
+      examiner:
+        enabled: true
       terminal:
         enabled: true
         layout: split
