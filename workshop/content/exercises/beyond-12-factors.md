@@ -4,7 +4,7 @@ Technology has advanced since the original creation of the 12-factor app, and in
 
 In his book Beyond the **Twelfe-Factor App**, Kevin Hoffman presented a new set of guidelines that build on the original 12 factors. The book can be downloaded [here](https://tanzu.vmware.com/content/ebooks/beyond-the-12-factor-app).
 
-On of those is **Telemetry**.
+One of those is **Telemetry**.
 
 ##### Distributed Tracing
 With Distributed Tracing, you can track user requests end-to-end across microservices architectures. 
