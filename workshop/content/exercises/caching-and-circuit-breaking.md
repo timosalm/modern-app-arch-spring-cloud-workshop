@@ -183,6 +183,13 @@ text: |
 ```
 
 After pushing our changes to Git, the updated source code will be automatically deployed to production. 
+```examiner:execute-test
+name: test-that-pod-for-app-exists
+title: Verify that deployment happend.
+args:
+- order-service-00003
+```
+
 ```terminal:execute
 command: |
   cd order-service && git add . && git commit -m "Add circuit-breaker" && git push

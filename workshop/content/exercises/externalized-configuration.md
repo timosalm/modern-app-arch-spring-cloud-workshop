@@ -14,7 +14,7 @@ file: ~/samples/config-server/src/main/java/com/example/configserver/ConfigServe
 
 It's configured for a Git repository as a source of the externalized configuration that is also already created for you.
 ```dashboard:open-url
-url: {{ ENV_GITEA_BASE_URL }}/externalized-configuration/src/{{ session_namespace }}
+url: {{ git_protocol }}://{{ git_host }}/externalized-configuration/src/{{ session_namespace }}
 ```
 In addition to the URL of your repository with the externalized configuration, `defaultLabel` is also set, which can be a branch name, a tag name, or a specific Git commit hash to provide different configurations for different environments. In our case, it's just a branch for your workshop session.
 

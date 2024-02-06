@@ -1,14 +1,14 @@
 #@ load("@ytt:data", "data")
 ---
-apiVersion: learningcenter.tanzu.vmware.com/v1beta1
+apiVersion: training.educates.dev/v1beta1
 kind: TrainingPortal
 metadata:
-  name: developer-workshops
+  name: tap-spring-dev-workshops
   annotations:
     kapp.k14s.io/update-strategy: always-replace
 spec:
   portal:
-    title: Workshops for developers
+    title: Workshops for Spring developers
     password: #@ data.values.training_portal_password
     registration:
       type: anonymous
@@ -17,11 +17,11 @@ spec:
     updates:
       workshop: true
     sessions:
-      maximum: 30
+      maximum: 40
     reserved: 0
   workshops:
     - name: modern-app-arch-spring-cloud-workshop
-      capacity: 30
-      reserved: 0
-      expires: 3h
+      capacity: 40
+      reserved: 1
+      expires: 4h
       orphaned: 1h

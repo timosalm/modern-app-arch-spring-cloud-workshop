@@ -10,7 +10,7 @@ We will now have a look at the factors that are relevant for the implementation 
 #### Factor 1: Codebase
 The code of our sample **application is already tracked in revision control**, as suggested. Some of you may prefer to use a mono-repository for the microservices, which has the benefit that everything is in one place. For your real-world microservices application, it could be a sign that you've chosen the wrong architecture, and a modular monolith could be a better choice.
 ```dashboard:open-url
-url: {{ ENV_GITEA_BASE_URL }}/order-service/src/{{ session_namespace }}
+url: {{ git_protocol }}://{{ git_host }}/order-service/src/{{ session_namespace }}
 ```
 
 #### Factor 2: Dependencies

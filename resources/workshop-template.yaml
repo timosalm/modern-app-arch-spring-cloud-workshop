@@ -1,8 +1,6 @@
 #@ load("@ytt:data", "data")
-#@ load("@ytt:base64", "base64")
-#@ load("@ytt:json", "json")
 ---
-apiVersion: learningcenter.tanzu.vmware.com/v1beta1
+apiVersion: training.educates.dev/v1beta1
 kind: Workshop
 metadata:
   name: modern-app-arch-spring-cloud-workshop
@@ -13,41 +11,49 @@ spec:
   difficulty: beginner
   duration: 60m
   url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop
-  content:
-    image: #@ "{}".format(data.values.workshop_container_image)
-    files: #@ "github.com/{}/modern-app-arch-spring-cloud-workshop?ref={}".format(data.values.workshop_git.username,data.values.workshop_git.branch)
+  workshop:
+    image: ghcr.io/timosalm/modern-app-arch-spring-cloud-workshop@sha256:1b087e3548c037b2cd06496a9276c6ea771bef06f8b123ad8badd3239311f2a7
+    files:
+    - git:
+        url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop
+        ref: origin/main
+      includePaths:
+      - /workshop/**
+      - /samples/**
   session:
     namespaces:
       budget: custom
       role: view
+      security:
+        policy: baseline
     applications:
-      files:
-        enabled: true
-      examiner:
-        enabled: true
       terminal:
         enabled: true
         layout: split
-      console:
-        enabled: false
       editor:
+        enabled: true
+      git:
+        enabled: true
+      registry:
+        enabled: true
+      examiner:
+        enabled: true
+      files:
         enabled: true
     env: 
     - name: TAP_INGRESS
-      value: #@ data.values.tap.ingress_domain
-    - name: GITEA_BASE_URL
-      value: #@ data.values.gitea.base_url
-    - name: GITEA_USERNAME
-      value: #@ data.values.gitea.basic_auth_username
-    - name: GITEA_PASSWORD
-      value: #@ data.values.gitea.basic_auth_password
+      value: #@ data.values.tap.ingress_domain    
     ingresses:
     - name: twelve-factors
       protocol: https
       host: 12factor.net 
       port: 443
+    - name: git-ui
+      port: 1234
+    dashboards:
+    - name: GIT UI
+      url: "$(ingress_protocol)://git-ui-$(session_name).$(ingress_domain)"
     objects:
-    # Permissions for workshop session
     - apiVersion: rbac.authorization.k8s.io/v1
       kind: Role
       metadata:
@@ -76,155 +82,6 @@ spec:
         - kind: ServiceAccount
           namespace: $(workshop_namespace)
           name: $(service_account)
-    - apiVersion: v1
-      kind: Secret
-      metadata:
-        annotations:
-          tekton.dev/git-0: #@ data.values.gitops.host
-        name: git-https
-      type: kubernetes.io/basic-auth
-      stringData:
-        username: #@ data.values.gitops.username
-        password: #@ data.values.gitops.password
-    - apiVersion: v1
-      kind: Secret
-      metadata:
-        name: registry-credentials
-      type: kubernetes.io/dockerconfigjson
-      data:
-        #@ docker_creds = {"username": data.values.container_registry.username, "password": data.values.container_registry.password}
-        .dockerconfigjson: #@ base64.encode(json.encode({"auths": {data.values.container_registry.hostname: docker_creds}}))
-    - apiVersion: carto.run/v1alpha1
-      kind: Workload
-      metadata:
-        labels:
-          apps.tanzu.vmware.com/workload-type: web
-        name: order-service
-      spec:
-        build:
-          env:
-          - name: BP_JVM_VERSION
-            value: "17"
-        source:
-          git:
-            ref:
-              branch: $(session_namespace)
-            url: #@ data.values.gitea.base_url + '/order-service.git'
-        serviceClaims:
-        - name: db
-          ref:
-            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-            kind: ClassClaim
-            name: postgres-1
-        - name: rmq
-          ref:
-            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-            kind: ClassClaim
-            name: rmq-1
-        - name: cache
-          ref:
-            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-            kind: ClassClaim
-            name: redis-1
-        - name: config-server
-          ref:
-            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-            kind: ResourceClaim
-            name: configserver-binding-compatible
-    - apiVersion: carto.run/v1alpha1
-      kind: Workload
-      metadata:
-        labels:
-          apps.tanzu.vmware.com/workload-type: web
-        name: product-service
-      spec:
-        build:
-          env:
-          - name: BP_JVM_VERSION
-            value: "17"
-        source:
-          git:
-            ref:
-              branch: $(session_namespace)
-            url: #@ data.values.gitea.base_url + '/product-service.git'
-    - apiVersion: carto.run/v1alpha1
-      kind: Workload
-      metadata:
-        labels:
-          apps.tanzu.vmware.com/workload-type: server
-        name: shipping-service
-      spec:
-        build:
-          env:
-          - name: BP_JVM_VERSION
-            value: "17"
-        source:
-          build:
-            env:
-            - name: BP_JVM_VERSION
-              value: "17"
-          git:
-            ref:
-              branch: $(session_namespace)
-            url: #@ data.values.gitea.base_url + '/shipping-service.git'
-        serviceClaims:
-        - name: rmq
-          ref:
-            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-            kind: ClassClaim
-            name: rmq-1
-        - name: config-server
-          ref:
-            apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-            kind: ResourceClaim
-            name: configserver-binding-compatible
-    - apiVersion: carto.run/v1alpha1
-      kind: Workload
-      metadata:
-        labels:
-          apps.tanzu.vmware.com/workload-type: web
-        name: gateway
-      spec:
-        build:
-          env:
-            - name: BP_JVM_VERSION
-              value: "17"
-        source:
-          git:
-            ref:
-              branch: $(session_namespace)
-            url: #@ data.values.gitea.base_url + '/gateway.git'
-    - apiVersion: carto.run/v1alpha1
-      kind: Workload
-      metadata:
-        labels:
-          apps.tanzu.vmware.com/workload-type: web
-        annotations:
-          autoscaling.knative.dev/min-scale: "1"
-        name: config-server
-      spec:
-        env:
-        - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
-          value: #@ data.values.gitea.base_url + '/externalized-configuration.git'
-        - name: SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL
-          value: $(session_namespace)
-        build:
-          env:
-          - name: BP_JVM_VERSION
-            value: "17"
-        source:
-          git:
-            ref:
-              branch: main
-            url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop.git
-          subPath: samples/config-server
-    - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-      kind: ClassClaim
-      metadata:
-        name: rmq-1
-      spec:
-        classRef:
-          name: rabbitmq-unmanaged
     - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
       kind: ClassClaim
       metadata:
@@ -239,6 +96,13 @@ spec:
       spec:
         classRef:
           name: redis-unmanaged
+    - apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      metadata:
+        name: rmq-1
+      spec:
+        classRef:
+          name: rabbitmq-unmanaged
     - apiVersion: v1
       kind: Secret
       metadata:
@@ -300,26 +164,3 @@ spec:
                 port: 9411
         virtualhost:
           fqdn: "zipkin-$(session_namespace).$(ingress_domain)"
-    - apiVersion: carto.run/v1alpha1
-      kind: Workload
-      metadata:
-        labels:
-          apps.tanzu.vmware.com/workload-type: web
-        name: product-service-native
-      spec:
-        image: harbor.emea.end2end.link/tap-workshop/product-service-native
-        env:
-          - name: MANAGEMENT_SERVER_PORT
-            value: "8081"
-          - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ADD_ADDITIONAL_PATHS
-            value: "true"
-          - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
-            value: always
-          - name: MANAGEMENT_ENDPOINTS_WEB_BASE_PATH
-            value: /actuator
-          - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
-            value: '*'
-          - name: MANAGEMENT_HEALTH_PROBES_ENABLED
-            value: "true"
-          - name: SERVER_PORT
-            value: "8080"

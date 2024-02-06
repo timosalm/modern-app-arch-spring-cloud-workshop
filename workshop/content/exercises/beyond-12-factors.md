@@ -176,7 +176,7 @@ text: |2
 ```
 ```terminal:execute
 command: |
-  cd gateway && git init -b {{ session_namespace }} && git remote add origin $GITEA_BASE_URL/gateway.git && git add . && git commit -m "Initial implementation" && git push -u origin {{ session_namespace }} -f
+  cd gateway && git init -b {{ session_namespace }} && git remote add origin {{ git_protocol }}://{{ git_host }}/gateway.git && git add . && git commit -m "Initial implementation" && git push -u origin {{ session_namespace }} -f
   cd ..
 clear: true
 ```

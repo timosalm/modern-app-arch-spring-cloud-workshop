@@ -8,7 +8,6 @@ spring:
       host: ${spring.redis.host}
       password: ${spring.redis.password}
       port: ${spring.redis.port}
- 
 logging.level.org.springframework.cache: TRACE
 management:
   tracing.sampling.probability: 1.0
