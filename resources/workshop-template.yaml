@@ -12,7 +12,7 @@ spec:
   duration: 60m
   url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop
   workshop:
-    image: ghcr.io/timosalm/modern-app-arch-spring-cloud-workshop@sha256:1b087e3548c037b2cd06496a9276c6ea771bef06f8b123ad8badd3239311f2a7
+    image: ghcr.io/timosalm/modern-app-arch-spring-cloud-workshop@sha256:e110faf754ebc8be805ba2aad6cea2692b3da7ac65cf68f659948a6b3de4d845
     files:
     - git:
         url: https://github.com/timosalm/modern-app-arch-spring-cloud-workshop

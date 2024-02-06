@@ -7,5 +7,5 @@ kubectl label namespaces ${SESSION_NAMESPACE} apps.tanzu.vmware.com/tap-ns=""
 
 # kubectl patch serviceaccount default -p '{"secrets": [{"name": "registry-credentials"},{"name": "git-https"}], "imagePullSecrets": [{"name": "registry-credentials"}]}'
 
-# cp -a samples/spring-cloud-demo/. .
-# rm -rf samples/spring-cloud-demo
+cp -a samples/spring-cloud-demo/. .
+rm -rf samples/spring-cloud-demo
