@@ -16,6 +16,8 @@ set +e
 #     cd $serviceName && git init -b $SESSION_NAMESPACE && git remote add origin $GIT_PROTOCOL://$GIT_HOST/${serviceName}.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
 #     cd ~
 # done
+(cd /opt/git/repositories && git init && git config --global --add safe.directory /opt/git/repositories && git instaweb)
+
 cd ~/samples/externalized-configuration
 for serviceName in product-service order-service shipping-service; do
   sed -i 's/SESSION_NAMESPACE/'"$SESSION_NAMESPACE"'/g' ${serviceName}.yaml
