@@ -27,6 +27,8 @@ mv samples/spring-cloud-demo/order-service .
 mv samples/spring-cloud-demo/shipping-service .
 mv samples/spring-cloud-demo/product-service .
 
+curl $GIT_PROTOCOL://$GIT_HOST
+
 for serviceName in order-service shipping-service product-service; do
     (cd ${serviceName} && git init -b main && git remote add origin $GIT_PROTOCOL://$GIT_HOST/${serviceName}.git && git add . && git commit -m "Initial implementation" && git push -u origin main)
 done
