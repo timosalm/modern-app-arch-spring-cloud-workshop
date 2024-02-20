@@ -19,6 +19,8 @@ set +e
 
 #git init -b $SESSION_NAMESPACE && git remote add origin $GIT_PROTOCOL://$GIT_HOST//externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
 
+git config --global user.email "$GIT_USERNAME@example.com"
+git config --global user.name "$GIT_USERNAME"
 (cd /opt/git/repositories && git init && git config --global --add safe.directory /opt/git/repositories && git instaweb)
 
 mv samples/spring-cloud-demo/order-service .
