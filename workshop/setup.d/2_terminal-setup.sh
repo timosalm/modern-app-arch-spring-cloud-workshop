@@ -26,7 +26,7 @@ mv samples/spring-cloud-demo/shipping-service .
 mv samples/spring-cloud-demo/product-service .
 
 for serviceName in order-service shipping-service product-service; do
-    (cd ${serviceName} && git init -b main && git remote add origin {{ git_protocol }}://{{ git_host}}/${serviceName}.git && git add . && git commit -m "Initial implementation" && git push -u origin main)
+    (cd ${serviceName} && git init -b main && git remote add origin $GIT_PROTOCOL://$GIT_HOST/${serviceName}.git && git add . && git commit -m "Initial implementation" && git push -u origin main)
 done
 
-(cd ~/samples/externalized-configuration && sed -i 's~NAMESPACE~'"$SESSION_NAMESPACE"'~g' order-service.yaml && git init -b main && git remote add origin {{ git_protocol }}://{{ git_host}}/externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin main)
+(cd ~/samples/externalized-configuration && sed -i 's~NAMESPACE~'"$SESSION_NAMESPACE"'~g' order-service.yaml && git init -b main && git remote add origin $GIT_PROTOCOL://$GIT_HOST/externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin main)
