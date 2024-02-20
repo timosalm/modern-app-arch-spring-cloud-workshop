@@ -1,3 +1,18 @@
+```terminal:interrupt
+autostart: true
+hidden: true
+cascade: true
+```
+```terminal:execute
+command: |
+  for serviceName in order-service shipping-service product-service; do
+    (cd ${serviceName} && git push -u origin main)
+  done
+  (cd ~/samples/externalized-configuration && git push -u origin main)
+  clear
+hidden: true
+```
+
 Created in 2012, the **12-factor app methodology provides a well-defined framework for developing modern microservices and helps us to identify challenges we may face**.
 
 ```dashboard:create-dashboard
