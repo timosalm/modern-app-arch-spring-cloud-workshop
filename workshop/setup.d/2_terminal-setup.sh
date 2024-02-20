@@ -16,11 +16,17 @@ set +e
 #     cd $serviceName && git init -b $SESSION_NAMESPACE && git remote add origin $GIT_PROTOCOL://$GIT_HOST/${serviceName}.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
 #     cd ~
 # done
+
+#git init -b $SESSION_NAMESPACE && git remote add origin $GIT_PROTOCOL://$GIT_HOST//externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
+
 (cd /opt/git/repositories && git init && git config --global --add safe.directory /opt/git/repositories && git instaweb)
 
-cd ~/samples/externalized-configuration
-for serviceName in product-service order-service shipping-service; do
-  sed -i 's/SESSION_NAMESPACE/'"$SESSION_NAMESPACE"'/g' ${serviceName}.yaml
+for serviceName in order-service shipping-service product-service; do
+    sed -i 's~REGISTRY_HOST~'"$REGISTRY_HOST"'~g' samples/spring-cloud-demo/${serviceName}/config/workload.yaml
 done
-git init -b $SESSION_NAMESPACE && git remote add origin $GIT_PROTOCOL://$GIT_HOST//externalized-configuration.git && git add . && git commit -m "Initial implementation" && git push -u origin $SESSION_NAMESPACE -f
-cd ~
+
+cp -r samples/spring-cloud-demo/order-service .
+cp -r samples/spring-cloud-demo/shipping-service .
+cp -r samples/spring-cloud-demo/product-service .
+
+(cd ~/samples/externalized-configuration && sed -i 's~NAMESPACE~'"$SESSION_NAMESPACE"'~g' order-service.yaml)

@@ -3,20 +3,26 @@ Created in 2012, the **12-factor app methodology provides a well-defined framewo
 ```dashboard:create-dashboard
 name: The Twelve Factors
 url: https://{{ session_namespace }}-twelve-factors.{{ ingress_domain }}#the_twelve_factors
+autostart: true
+hidden: true
 ```
 
 We will now have a look at the factors that are relevant for the implementation of our application and the solution Spring provides for them.
 
 #### Factor 1: Codebase
-The code of our sample **application is already tracked in revision control**, as suggested. Some of you may prefer to use a mono-repository for the microservices, which has the benefit that everything is in one place. For your real-world microservices application, it could be a sign that you've chosen the wrong architecture, and a modular monolith could be a better choice.
-```dashboard:open-url
-url: {{ git_protocol }}://{{ git_host }}/order-service/src/{{ session_namespace }}
+The code of our sample **application is already tracked in source control**.
+
+The source code for the product service can be found here.
+```dashboard:reload-dashboard
+name: GIT UI
+url: {{ ingress_protocol }}://git-ui-{{ session_name }}.{{ ingress_domain }}?p=product-service.git;a=tree
 ```
 
 #### Factor 2: Dependencies
-For the second factor, **Maven and Gradle** are two of the most popular tools in the Java world that allow us to **declare dependencies** and let the tool be responsible for ensuring that those dependencies are satisfied. The sample application is using Maven, but it should be easy for you to switch to Gradle if you prefer it.
+**Maven and Gradle** are two of the most popular tools in the Java ecosystem that allow us to **declare and manage dependencies**. As we have already seen, the product service is using Maven.
+
 ```editor:open-file
-file: ~/order-service/pom.xml
+file: ~/product-service/pom.xml
 line: 34
 ```
 

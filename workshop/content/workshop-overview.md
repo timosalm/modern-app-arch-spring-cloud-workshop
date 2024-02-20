@@ -8,11 +8,11 @@ The picture shows a typical microservice application for a supply chain.
 
 All the microservices are implemented using Spring Boot and initially created on https://start.spring.io.
 
-#### Spring by VMware 
+#### Spring by Broadcom 
 
 ![](images/spring-logo.svg)
 
-With the acquisition of Pivotal, VMware is now the vendor of Spring, and Spring plays an important role in the VMware Tanzu portfolio.
+With the acquisition of VMware, Broadcom is now the vendor of Spring, and Spring plays an important role in Broadcom's Tanzu portfolio.
 
 The goal of **Spring** is to simplify and accelerate application development, and due to its autoconfiguration, **Spring Boot** is the foundation for fast development of production-ready applications. 
 
