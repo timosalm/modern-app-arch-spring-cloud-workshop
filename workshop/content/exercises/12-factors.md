@@ -11,6 +11,7 @@ command: |
   (cd ~/samples/externalized-configuration && git push -u origin main)
   clear
 hidden: true
+cascade: true
 ```
 
 Created in 2012, the **12-factor app methodology provides a well-defined framework for developing modern microservices and helps us to identify challenges we may face**.
@@ -18,7 +19,6 @@ Created in 2012, the **12-factor app methodology provides a well-defined framewo
 ```dashboard:create-dashboard
 name: The Twelve Factors
 url: https://{{ session_namespace }}-twelve-factors.{{ ingress_domain }}#the_twelve_factors
-autostart: true
 hidden: true
 ```
 
