@@ -28,7 +28,7 @@ jobs:
           cache: maven
       - name: Build container image
         run: |
-          (cd samples/config-server && ./mvnw spring-boot:build-image -D module.image.name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }})
+          (cd samples/config-server && ./mvnw spring-boot:build-image -D module.image.name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Log into container registry
         uses: docker/login-action@v2
         with:
@@ -36,4 +36,4 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish container image
-        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
