@@ -34,4 +34,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build container image
         run: |
-          (cd samples/config-server && ./mvnw spring-boot:build-image -Dspring-boot.build-image.publish=true -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }})
+          (cd samples/config-server && ./mvnw spring-boot:build-image -Dspring-boot.build-image.publish=true -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Ddocker.publish=true -Ddocker.credentials.user=${{ github.actor }} -Ddocker.credentials.password=${{ secrets.GITHUB_TOKEN }} -Ddocker.registry.host=${{ env.REGISTRY }})
+          
